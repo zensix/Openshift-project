@@ -1,0 +1,22 @@
+{
+  "env1": {
+    "endpoint": "api.env1.myopenshift.org",
+    "token": "",
+    "port": "6443",
+    "prometheus": {
+      "endpoint": "prometheus-k8s-openshift-monitoring.apps.env1.myopenshift.org",
+      "token": ""
+     "port": "443"
+    }
+ },
+ "env2": {
+    "endpoint": "api.env2.myopenshift.org",
+    "token": "",
+    "port": "6443",
+    "prometheus": {
+      "endpoint": "prometheus-k8s-openshift-monitoring.apps.env2.myopenshift.org",
+      "token": ""
+     "port": "443"
+    }
+ }
+}

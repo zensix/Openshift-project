@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.0</version>
+    <groups>
+        <group>
+            <name>Templates/Applications</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template - Namespace - Openshift</template>
+            <name>Template - Namespace - Openshift</name>
+            <groups>
+                <group>
+                    <name>Templates/Applications</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>DeploymentConfig</name>
+                </application>
+                <application>
+                    <name>Pods</name>
+                </application>
+            </applications>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>Deployment Config Discover {$NAMESPACE}</name>
+                    <type>EXTERNAL</type>
+                    <key>request_oc_project.py[dc_discover,--namespace={$NAMESPACE},--env={$CLUSTER_OCP}]</key>
+                    <delay>1h</delay>
+                    <lifetime>2h</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>DC  {#NAMESPACE} - {#NAME} - availableReplicas</name>
+                            <type>DEPENDENT</type>
+                            <key>ocp.dc.availableReplicas[{#NAMESPACE},{#NAME}]</key>
+                            <delay>0</delay>
+                            <applications>
+                                <application>
+                                    <name>DeploymentConfig</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.availableReplicas</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>request_oc_project.py[dc_status,--selflink={#SELFLINK}, --env={$CLUSTER_OCP}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>DC  {#NAMESPACE} - {#NAME} - replicas</name>
+                            <type>DEPENDENT</type>
+                            <key>ocp.dc.replicas[ {#NAMESPACE},{#NAME}]</key>
+                            <delay>0</delay>
+                            <applications>
+                                <application>
+                                    <name>DeploymentConfig</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.replicas</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>request_oc_project.py[dc_status,--selflink={#SELFLINK}, --env={$CLUSTER_OCP}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>DC  {#NAMESPACE} - {#NAME} - unavailableReplicas</name>
+                            <type>DEPENDENT</type>
+                            <key>ocp.dc.unavailableReplicas[{#NAMESPACE},{#NAME}]</key>
+                            <delay>0</delay>
+                            <applications>
+                                <application>
+                                    <name>DeploymentConfig</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.unavailableReplicas</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>request_oc_project.py[dc_status,--selflink={#SELFLINK}, --env={$CLUSTER_OCP}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;0</expression>
+                                    <name>Deployment Config {#NAME}  namespace {#NAMESPACE} - UnavailableReplicas</name>
+                                    <priority>WARNING</priority>
+                                    <description>Des instances du deploiement du pod {#NAME} du namespace  {#NAMESPACE} ne sont manquantes</description>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>DC  {#NAMESPACE} - {#NAME} - updatedReplicas</name>
+                            <type>DEPENDENT</type>
+                            <key>ocp.dc.updatedReplicas[{#NAMESPACE},{#NAME}]</key>
+                            <delay>0</delay>
+                            <applications>
+                                <application>
+                                    <name>DeploymentConfig</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.updatedReplicas</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>request_oc_project.py[dc_status,--selflink={#SELFLINK}, --env={$CLUSTER_OCP}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Deployment Config  {#NAMESPACE} - {#NAME} - Data</name>
+                            <type>EXTERNAL</type>
+                            <key>request_oc_project.py[dc_status,--selflink={#SELFLINK}, --env={$CLUSTER_OCP}]</key>
+                            <delay>5m</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>DeploymentConfig</name>
+                                </application>
+                            </applications>
+                        </item_prototype>
+                    </item_prototypes>
+                    <trigger_prototypes>
+                        <trigger_prototype>
+                            <expression>{Template - Namespace - Openshift:ocp.dc.replicas[ {#NAMESPACE},{#NAME}].last()}&lt;&gt;{Template - Namespace - Openshift:ocp.dc.availableReplicas[{#NAMESPACE},{#NAME}].last()}</expression>
+                            <name>Deployment Config {#NAME}  namespace {#NAMESPACE} - instances manquantes</name>
+                            <priority>WARNING</priority>
+                            <description>Le nombre d'instances pour le pod {#NAME} du namespace {#NAMESPACE} est inccorecte</description>
+                            <manual_close>YES</manual_close>
+                        </trigger_prototype>
+                    </trigger_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>Deployment Config  {#NAMESPACE} - {#NAME}</name>
+                            <graph_items>
+                                <graph_item>
+                                    <color>00FF00</color>
+                                    <item>
+                                        <host>Template - Namespace - Openshift</host>
+                                        <key>ocp.dc.availableReplicas[{#NAMESPACE},{#NAME}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>BF00FF</color>
+                                    <item>
+                                        <host>Template - Namespace - Openshift</host>
+                                        <key>ocp.dc.replicas[ {#NAMESPACE},{#NAME}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <color>FF0000</color>
+                                    <item>
+                                        <host>Template - Namespace - Openshift</host>
+                                        <key>ocp.dc.unavailableReplicas[{#NAMESPACE},{#NAME}]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>3</sortorder>
+                                    <color>FFCC80</color>
+                                    <item>
+                                        <host>Template - Namespace - Openshift</host>
+                                        <key>ocp.dc.updatedReplicas[{#NAMESPACE},{#NAME}]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Pod Discover {$NAMESPACE}</name>
+                    <type>EXTERNAL</type>
+                    <key>request_oc_project.py[pod_discover,--namespace={$NAMESPACE},--env={$CLUSTER_OCP}]</key>
+                    <delay>1h</delay>
+                    <lifetime>2h</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Pod {#NAMESPACE} - {#NAME}- phase</name>
+                            <type>DEPENDENT</type>
+                            <key>ocp.pod.phase[{#NAMESPACE},{#NAME}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Pods</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.phase</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>request_oc_project.py[pod_status,--selflink={#SELFLINK},--env={$CLUSTER_OCP}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Pod {$NAMESPACE} - {#NAME} - ready</name>
+                            <type>DEPENDENT</type>
+                            <key>ocp.pod.ready[{$NAMESPACE},{#NAME}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Pods</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.containerStatus.ready</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>request_oc_project.py[pod_status,--selflink={#SELFLINK},--env={$CLUSTER_OCP}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Pod {#NAME} - restartCount</name>
+                            <type>DEPENDENT</type>
+                            <key>ocp.pod.restartCount[{#NAMESPACE},{#NAME}]</key>
+                            <delay>0</delay>
+                            <applications>
+                                <application>
+                                    <name>Pods</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.containerStatus.restartCount</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>request_oc_project.py[pod_status,--selflink={#SELFLINK},--env={$CLUSTER_OCP}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{change()}&gt;0</expression>
+                                    <name>Pod {#NAME} du namespace  {#NAMESPACE} - RestartCount increase</name>
+                                    <priority>WARNING</priority>
+                                    <description>Le nombre de redemarage du pod {#NAME} du namespace {#NAMESPACE} augmente</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Pod {#NAMESPACE} - {#NAME} - started</name>
+                            <type>DEPENDENT</type>
+                            <key>ocp.pod.started[{#NAMESPACE},{#NAME}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Pods</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.containerStatus.started</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>request_oc_project.py[pod_status,--selflink={#SELFLINK},--env={$CLUSTER_OCP}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Pod {#NAMESPACE} - {#NAME}- status</name>
+                            <type>DEPENDENT</type>
+                            <key>ocp.pod.status[{#NAMESPACE},{#NAME}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Pods</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JAVASCRIPT</type>
+                                    <params>data=JSON.parse(value)
+result=&quot;&quot;
+if(data.containerStatus.hasOwnProperty('state')){
+    result=Object.keys(data.containerStatus.state)[0]
+}
+return result</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>request_oc_project.py[pod_status,--selflink={#SELFLINK},--env={$CLUSTER_OCP}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{str(waiting)}=1</expression>
+                                    <name>Le pod {#NAME} du namspace {#NAMESPACE} est en status Waiting</name>
+                                    <priority>INFO</priority>
+                                    <description>Le pod  {#NAME} du namespace {#NAMESPACE} est en attente de demarrage</description>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Pod {$NAMESPACE} {#NAME} - data</name>
+                            <type>EXTERNAL</type>
+                            <key>request_oc_project.py[pod_status,--selflink={#SELFLINK},--env={$CLUSTER_OCP}]</key>
+                            <delay>5m</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Pods</name>
+                                </application>
+                            </applications>
+                        </item_prototype>
+                    </item_prototypes>
+                    <trigger_prototypes>
+                        <trigger_prototype>
+                            <expression>{Template - Namespace - Openshift:ocp.pod.phase[{#NAMESPACE},{#NAME}].str(Running)}=1 and {Template - Namespace - Openshift:ocp.pod.started[{#NAMESPACE},{#NAME}].regexp(false)}=1</expression>
+                            <name>Le pod {#NAME} du {#NAMESPACE} ne demarre pas</name>
+                            <priority>AVERAGE</priority>
+                            <description>Bien que le pod {#NAME} du namespace {#NAMESPACE} est en status &quot;Running&quot;, il n'est pas vue comme etant demarré (started) .</description>
+                        </trigger_prototype>
+                    </trigger_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Pod Discover {$NAMESPACE} - Prom Restart Rate</name>
+                    <type>EXTERNAL</type>
+                    <key>request_oc_project.py[prom_rate_restart_pod,--namespace={$NAMESPACE},--env={$CLUSTER_OCP}]</key>
+                    <delay>1h</delay>
+                    <lifetime>2h</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Container {#METRIC_CONTAINER} - Prom restart</name>
+                            <type>TRAP</type>
+                            <key>ocp.prometheus.pod.container.status.restarts[{#METRIC_CONTAINER},{#METRIC_POD}]</key>
+                            <delay>0</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Pods</name>
+                                </application>
+                            </applications>
+                        </item_prototype>
+                    </item_prototypes>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#METRIC_CONTAINER}</lld_macro>
+                            <path>$.metric.container</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#METRIC_NAMESPACE}</lld_macro>
+                            <path>$.metric.namespace</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#VALUE}</lld_macro>
+                            <path>$.value[1]</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#METRIC_POD}</lld_macro>
+                            <path>$.metric.pod</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <params>$.data.result</params>
+                        </step>
+                    </preprocessing>
+                </discovery_rule>
+            </discovery_rules>
+            <macros>
+                <macro>
+                    <macro>{$CLUSTER_OCP}</macro>
+                    <description>Refere to ocp env</description>
+                </macro>
+                <macro>
+                    <macro>{$NAMESPACE}</macro>
+                    <value>default</value>
+                    <description>Namespace ( project) to supervise</description>
+                </macro>
+            </macros>
+            <screens>
+                <screen>
+                    <name>{$NAMESPACE} Deployement Config</name>
+                    <hsize>1</hsize>
+                    <vsize>1</vsize>
+                    <screen_items>
+                        <screen_item>
+                            <resourcetype>20</resourcetype>
+                            <style>0</style>
+                            <resource>
+                                <name>Deployment Config  {#NAMESPACE} - {#NAME}</name>
+                                <host>Template - Namespace - Openshift</host>
+                            </resource>
+                            <width>500</width>
+                            <height>100</height>
+                            <x>0</x>
+                            <y>0</y>
+                            <colspan>1</colspan>
+                            <rowspan>1</rowspan>
+                            <elements>0</elements>
+                            <valign>0</valign>
+                            <halign>0</halign>
+                            <dynamic>0</dynamic>
+                            <sort_triggers>0</sort_triggers>
+                            <url/>
+                            <application/>
+                            <max_columns>3</max_columns>
+                        </screen_item>
+                    </screen_items>
+                </screen>
+            </screens>
+        </template>
+    </templates>
+</zabbix_export>
