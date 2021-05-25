@@ -197,4 +197,23 @@ openshift.json sample:
            "phase": "Running"
         }
 
+## Zabbix configuration
+For performances consideration, all projects ares not automaticly check
+You should add project one by one in zabbix supervision
+
+### Add one project
+In this example I suppose your OCP fqn api is __api.ocp.whatever__ , ip __192.168.0.1__ and namespace/projet to supervise is named __projectOne__
+
+Add "fake" host where :
+Host name : __api.ocp.whatever - projectOne__  ( is just proposition, you can choose what you want)
+Agent: __192.168.0.1__ (APi IP) Dns Name:  api.ocp.whatever ( API FQDN)
+
+Templates: Add __Template - Namespace - Openshift__
+
+Macro: 
+Set {$NAMESPACE} value with the namespace (__projectOne__ in this example )
+Set {$CLUSTER_OCP} value with name of your cluster configuration name ( see openshift.json config: __env1__ in example)
+ 
+If you want add other project you can duplicate this host and just change
+__Host name__ : __api.ocp.whatever - projectTwo__ ( don't change agent config ) and __{$NAMESPACE}__ macro value ( projectTwo )
 
