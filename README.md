@@ -1,11 +1,19 @@
 # Template - Namespace - Openshift
 
+# History
+27/05/2021 
+- Multiple correction about discovery ( Thank to Samuele)
+- Add some precision in README.md
+- Syntax correction in openshift.json_model
+- Add .gitignore to prevent accidentaly upload a real configuration
+
 # How it works
 
 Template use unique zabbix external script ( python script) with different parameters
 
 The script use some openshift api and openshift prometheus calls
-Discover and check status of deployment config and pods for specifique namespace
+
+Discover and check status of deployment config and pods for specifique a namespace
 
 Because zabbix macro size limitation ( OCP Token is to big),
 the python script use __openshift.json__ config file. 
@@ -14,7 +22,7 @@ At time, the supervision is simple
 
 alerting if deployment config or pod status are abormals or pod restart count increase
 
-## Installing
+## Installation
 
 1. Clone the project
 2. Copy __request_oc_project.py__ to __/usr/lib/zabbix/externalscripts/__ ( on you zbx server and/or proxy )
@@ -22,23 +30,34 @@ alerting if deployment config or pod status are abormals or pod restart count in
 4. Configure all values present in __/usr/lib/zabbix/externalscripts/openshift.json__  (see Environment config section)
 5. Import the template file __zbx-template-ocp-project.xml__ to zabbix ( template name: __Template - Namespace - Openshift__)
 
-For each project/namespace you want to check
-1. Create new host where:
+## Zabbix configuration
+For performances consideration, all projects ares not automatically check.
+You have to add the projects one by one
+
+For each project to be supervised
+1. Create new "fake" host where:
 
    - Host name: what your want for exemple: fqn-ocp-api-namespace 
    - Interface Type: Agent
-   - Interface ip: Adress of you cluster api endpoint
+   - Interface ip: Ip adress of you cluster api endpoint
    - Interface dns: fqdn of you cluster api endpoint 
 
 Note: 
-zbx agent is not use, this config is just made to set some zbx host macro ( like {HOST.IP} ..)
+zbx agent is not use (you don't have to install agent on you ocp cluster), this config is just made to set some zbx host macro ( like {HOST.IP} ..)
 
 2. Add template __Template - Namespace - Openshift__ to the new host config
 
-set herited template macro value on the new host:
+Set herited template macro value on the new host:
 
 - {$CLUSTER_OCP}: env name of json config file (env1 in this sample)
 - {$NAMESPACE} : Name of ocp project to supervise
+
+### Note: If you want to add another namespace with same ocp cluster :
+
+- Full Clone you first "fake" host ( fqn-ocp-api-namespace  )
+- Change the hostname ( example : fqn-ocp-api-othernamespace), But don't change Interface confguration
+- Change {$NAMESPACE} macro value according you other namespace (othernamespace to this sample ) 
+
 
 ## Python script usage
 
@@ -52,7 +71,7 @@ For help :
                 dc_discover: output deployment config of namespace ( need env and namespace parameters)
                 dc_discover: output deployment config of namespace ( need env and namespace parameters)
                 dc_status: output deployment config status ( neev envend selflink parameters)
-                pod_discover: outpus all pod of namespace (need env and namespace parameters)
+                pod_discover: output all pod of namespace (need env and namespace parameters)
         Options:
                 -h,--help: this help
                 -n,--namespace: Namespace
@@ -75,6 +94,7 @@ For each environnement you need following informations:
 - __prometheus.endpoint__: Openshift Prometheus url
 - __prometheus.token__: Openshift token use by http client has bearer token for prometheus access
 - __prometheus.port__: Prometheus TCP port
+
 
 To get OCP tokens :
 - Api Server token :
@@ -201,7 +221,7 @@ openshift.json sample:
 For performances consideration, all projects ares not automaticly check
 You should add project one by one in zabbix supervision
 
-### Add one project
+### Add you first project
 In this example I suppose your OCP fqn api is __api.ocp.whatever__ , ip __192.168.0.1__ and namespace/projet to supervise is named __projectOne__
 
 Add "fake" host where :
@@ -223,3 +243,5 @@ If you want add other project you can duplicate this host and just change
 
 __Host name__ : __api.ocp.whatever - projectTwo__ ( don't change agent config ) and __{$NAMESPACE}__ macro value ( projectTwo )
 
+
+---

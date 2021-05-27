@@ -9,6 +9,15 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 s=requests.Session()
 
+def output_data(mode,dest,key,data):
+   senderCmd = 'zabbix_sender -c /etc/zabbix/zabbix_agentd.conf -s '+dest+' -k \''+key+'\' -o \''+json.dumps(data)+'\''
+   if(mode=="trap"):
+     os.system(senderCmd)
+   elif(mode=="debug"):
+     print(senderCmd)
+   else:
+     print(json.dumps(data))
+
 def get_data(cfg,link):
    """ Generique function to get data from openshift API
    Parameters: 
@@ -21,7 +30,8 @@ def get_data(cfg,link):
    return result
 
 def discover_namespaces(cfg):
-   """ Discovers namescpaces 
+   """
+   Discover deployment Config for specifique namescape 
    """
    result=get_data(cfg,"/api/v1/namespaces")
    data={"data":[]}
@@ -31,32 +41,26 @@ def discover_namespaces(cfg):
    print json.dumps(data,indent=2)
 
 def get_namespace(cfg,link):
-   """
-   Get specifique namescape information 
-   """
    result=get_data(cfg,link)
    obj={"name":result['metadata']['name'].encode('utf-8'),"selfLink":result['metadata']['selfLink'].encode('utf-8'),
       "status":result['status']['phase'].encode('utf-8'),"annotations":result['metadata']['annotations']}
    print json.dumps(obj,indent=2)
  
 def dc_discover(cfg,namespace):
-   """
-   Discover deployment Config for specifique namescape 
-   """
    url = "https://"+cfg['endpoint']+":"+cfg['port']+"/apis/apps.openshift.io/v1/namespaces/"+namespace+"/deploymentconfigs"
    r = s.request('GET',url,headers={'Authorization': 'Bearer '+cfg['token']},verify=False)
    result = json.loads(r.text)
-   data=[]
+   data={"data":[]} 
    for item in result["items"]:
-      obj={"{#NAME}":item['metadata']['name'].encode('utf-8'),"{#NAMESPACE}":cfg["namespace"],"{#SELFLINK}":item['metadata']['selfLink'].encode('utf-8')}
-      data.append(obj)
+      obj={"{#NAME}":item['metadata']['name'].encode('utf-8'),"{#NAMESPACE}":namespace,"{#SELFLINK}":item['metadata']['selfLink'].encode('utf-8')}
+      data["data"].append(obj)
    print json.dumps(data,indent=2)
    
 def dc_status(cfg,selflink):
    """
    Get specifique deployment Config status 
    """
-   result=get_data(cfg,cfg["selflink"])
+   result=get_data(cfg,selflink)
    del result['status']['conditions']
    del result['status']['details']
    print json.dumps(result['status'],indent=2)
@@ -68,17 +72,17 @@ def pod_discover(cfg,namespace):
    url = "https://"+cfg['endpoint']+":"+cfg['port']+'/api/v1/namespaces/'+namespace+'/pods'
    r = s.request('GET',url,headers={'Authorization': 'Bearer '+cfg['token']},verify=False)
    result = json.loads(r.text)
-   data=[]
+   data={"data":[]}
    for item in result["items"]:
-       obj={"{#NAME}":item['metadata']['name'].encode('utf-8'),"{#NAMESPACE}":cfg["namespace"],"{#SELFLINK}":item['metadata']['selfLink'].encode('utf-8')}
-       data.append(obj)
+       obj={"{#NAME}":item['metadata']['name'].encode('utf-8'),"{#NAMESPACE}":namespace,"{#SELFLINK}":item['metadata']['selfLink'].encode('utf-8')}
+       data["data"].append(obj)
    print json.dumps(data,indent=2)
    
 def pod_status(cfg,selflink):
    """
    Get statsus for specifique pod 
    """
-   result=get_data(cfg,cfg["selflink"])
+   result=get_data(cfg,selflink)
    del result['status']['conditions']
    del result['status']['podIPs']
    del result['status']['hostIP']
@@ -117,11 +121,12 @@ def help():
    "Usage:",
    __file__+ " [namespaces|dc_discover|dc_status|pod_discover|pod_status|prom_rate_restart_pod] Options",
    "Functions",
-   "\t namespaces: ouput all namespaces ( need env option)",
+   "\t namespaces: ouput all namespaces ( need env parameter)",
    "\t dc_discover: output deployment config of namespace ( need env and namespace parameters)",
-   "\t dc_discover: output deployment config of namespace ( need env and namespace parameters)",
-   "\t dc_status: output deployment config status ( neev envend selflink parameters)",
-   "\t pod_discover: outpus all pod of namespace (need env and namespace parameters)",
+   "\t dc_status: output deployment config status ( need env and selflink of dc parameters)",
+   "\t pod_discover: output all pod of namespace (need env and namespace parameters)",
+   "\t pod_status: output specifique pod informations ( need env and selflink of pod parameters)",
+   "\t prom_rate_restart_pod: Request prometheus data to gate rate restart pod of namespace ( need env and namespace parameters) ",
    "Options:",
    "\t-h,--help: this help",
    "\t-n,--namespace: Namespace",
@@ -133,20 +138,16 @@ def help():
 def main(cmd,argv):
    """ Main function
    """
-   # Set location of script
    cwd=os.path.dirname(os.path.abspath(__file__))
-   # Open openshift config file
    with open(cwd+'/openshift.json') as json_file:
      config = json.load(json_file)
-   # Set default value
    namespace=""
    selflink=""
    output="console"
    env=""
    source=os.uname()[1]
-   # Pars args
    try:
-      opts, args = getopt.getopt(argv,"hn:s:e:p:",["help","namespace=","env=","selflink=","param="])
+      opts, args = getopt.getopt(argv,"hn:s:e:p:",["help","namespace=","env=","selflink=","param=","output="])
    except getopt.GetoptError  as err:
       print "Parameter error"
       print(err)
@@ -160,13 +161,15 @@ def main(cmd,argv):
       elif opt in ("-e","--env"):
          cfg=config[arg]
       elif opt in ("-n","--namespace"):
-         cfg["namespace"] = arg
+         namespace = arg
       elif opt in ("--project"):
-         cfg["project"] = arg         
+         project = arg         
       elif opt in ("-s","--selflink"):
-         cfg["selflink"]=arg
+         selflink=arg
       elif opt in ("-p","--param"):
-         cfg["param"]=arg
+         param=arg
+      elif opt in ("-o","--ouput"):
+         output=arg
    if(cmd == "namespaces"):
      discover_namespaces(cfg)
    elif(cmd == "dc_discover"):
