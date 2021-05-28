@@ -7,7 +7,7 @@
 - Syntax correction in openshift.json_model
 - Add .gitignore to prevent accidentaly upload a real configuration
 
-28/25/2021
+28/05/2021
 - Add object_dump function
 
 # How it works
