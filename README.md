@@ -6,6 +6,8 @@
 - Add some precision in README.md
 - Syntax correction in openshift.json_model
 - Add .gitignore to prevent accidentaly upload a real configuration
+28/25/2021
+- Add object_dump function
 
 # How it works
 
@@ -69,9 +71,12 @@ For help :
         Functions
                 namespaces: ouput all namespaces ( need env option)
                 dc_discover: output deployment config of namespace ( need env and namespace parameters)
-                dc_discover: output deployment config of namespace ( need env and namespace parameters)
-                dc_status: output deployment config status ( neev envend selflink parameters)
+                dc_status: output deployment config status ( neev env and selflink parameters)
                 pod_discover: output all pod of namespace (need env and namespace parameters)
+                pod_status: output status pod  (need env and selflink parameters)
+                prom_rate_restart_pod: get pods restart count of namespace ( need env and namespace parameters)
+                dump_object: output raw object data ( need env and selflink parameters)"
+
         Options:
                 -h,--help: this help
                 -n,--namespace: Namespace
@@ -157,7 +162,8 @@ openshift.json sample:
 
 ### dc_discover
         $ request_oc_project.py dc_discover -e env1 -n project01
-        [
+        {
+          "data": [
            {
                "{#NAMESPACE}": "project01", 
                "{#SELFLINK}": "/apis/apps.openshift.io/v1/ amespaces/xxxx/deploymentconfigs/dc1", 
@@ -169,10 +175,12 @@ openshift.json sample:
                "{#SELFLINK}": "/apis/apps.openshift.io/v1/ amespaces/yyyyy/deploymentconfigs/dc2", 
                "{#NAME}": "dc2"
            }
-        ]
+         ]
+        }
 ### pod_discover
         $ request_oc_project.py pod_discover -e env1 -n project01
-        [
+        {
+          "data": [
            {
               "{#NAMESPACE}": "project01", 
               "{#SELFLINK}": "/api/v1/namespaces/project01/ods/project01-application-controller-0", 
@@ -187,7 +195,7 @@ openshift.json sample:
 ## Status functions:
 
 ### dc_status
-        $ request_oc_project.py dc_status -e env1 -n project01 -s /apis/apps.openshift.io/v1/namespaces/xxxx/deploymentconfigs/dc1 
+        $ request_oc_project.py dc_status -e env1 -s /apis/apps.openshift.io/v1/namespaces/xxxx/deploymentconfigs/dc1 
         {
            "replicas": 2, 
            "observedGeneration": 4, 
@@ -199,7 +207,7 @@ openshift.json sample:
         }
 
 ### pod_status
-        $ request_oc_project.py pod_status -e env1 -n project01 -s /api/v1/namespaces/project01/pods/project01-application-controller-0
+        $ request_oc_project.py pod_status -e env1 -s /api/v1/namespaces/project01/pods/project01-application-controller-0
         {
            "containerStatus": {
               "restartCount": 0, 
@@ -216,7 +224,24 @@ openshift.json sample:
            "startTime": "2021-02-09T12:50:45Z", 
            "phase": "Running"
         }
-
+### prom_rate_restart_pod
+      $ request_oc_project.py prom_rate_restart_pod -e env1 -n dummy-namespace
+      {"status":"success","data":{"resultType":"vector","result":[{"metric":{"container":"mongodb","endpoint":"https-main","instance":"x.x.x.x:8443","job":"kube-state-metrics","namespace":"dummy-namespace","pod":"mongodb-1-d7xx2","service":"kube-state-metrics"},"value":[1622187741.786,"0"]},{"metric":{"container":"nodejs-mongo-persistent","endpoint":"https-main","instance":"x.x.x.x:8443","job":"kube-state-metrics","namespace":"dummy-namespace","pod":"apps-4-pqlj5","service":"kube-state-metrics"},"value":[1622187741.786,"0"]}]}}
+### dump_object 
+      $ request_oc_project.py dump_object -e env1 -s /api/v1/namespaces/project01/pods/project01-application-controller-0
+      <type 'dict'>
+      {
+      "status": {
+         "hostIP": "x.x.x.x", 
+         "qosClass": "Burstable", 
+         "containerStatuses": [
+            {
+            "restartCount": 0, 
+            "name": "project01-application-controller-0", 
+            "started": true, 
+            ...
+            ...
+      }
 ## Zabbix configuration
 For performances consideration, all projects ares not automaticly check
 You should add project one by one in zabbix supervision

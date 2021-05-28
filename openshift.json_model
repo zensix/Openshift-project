@@ -5,7 +5,7 @@
     "port": "6443",
     "prometheus": {
       "endpoint": "prometheus-k8s-openshift-monitoring.apps.env1.myopenshift.org",
-      "token": ""
+      "token": "",
      "port": "443"
     }
  },
@@ -15,7 +15,7 @@
     "port": "6443",
     "prometheus": {
       "endpoint": "prometheus-k8s-openshift-monitoring.apps.env2.myopenshift.org",
-      "token": ""
+      "token": "",
      "port": "443"
     }
  }

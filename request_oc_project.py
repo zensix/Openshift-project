@@ -116,17 +116,23 @@ def prom_rate_restart_pod(cfg,namespace):
    r = s.request('GET',url,params=payload,headers={'Authorization': 'Bearer '+cfg['token']},verify=False)
    print r.text
 
+def dump_object(cfg,link):
+    result = get_data(cfg,link)
+    print type(result)
+    print json.dumps(result,indent=2)
+
 def help():
    print '\n'.join([
    "Usage:",
    __file__+ " [namespaces|dc_discover|dc_status|pod_discover|pod_status|prom_rate_restart_pod] Options",
    "Functions",
-   "\t namespaces: ouput all namespaces ( need env parameter)",
+   "\t namespaces: ouput all namespaces ( need env option)",
    "\t dc_discover: output deployment config of namespace ( need env and namespace parameters)",
-   "\t dc_status: output deployment config status ( need env and selflink of dc parameters)",
+   "\t dc_status: output deployment config status ( need env and selflink parameters)",
    "\t pod_discover: output all pod of namespace (need env and namespace parameters)",
-   "\t pod_status: output specifique pod informations ( need env and selflink of pod parameters)",
-   "\t prom_rate_restart_pod: Request prometheus data to gate rate restart pod of namespace ( need env and namespace parameters) ",
+   "\t pod_status: output pod status ( need env and selflink parameters)",
+   "\t prom_rate_restart_pod: get pods restart count of namespace ( need env and namespace parameters)",
+   "\t dump_object: output raw object data ( need env and selflink parameters)",
    "Options:",
    "\t-h,--help: this help",
    "\t-n,--namespace: Namespace",
@@ -182,6 +188,8 @@ def main(cmd,argv):
      pod_status(cfg,selflink)
    elif(cmd == "prom_rate_restart_pod"):
      prom_rate_restart_pod(cfg['prometheus'],namespace)
+   elif(cmd == "dump_object"):
+     dump_object(cfg,selflink)
    else:
      help()
      sys.exit(2)
