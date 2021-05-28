@@ -6,6 +6,7 @@
 - Add some precision in README.md
 - Syntax correction in openshift.json_model
 - Add .gitignore to prevent accidentaly upload a real configuration
+
 28/25/2021
 - Add object_dump function
 
