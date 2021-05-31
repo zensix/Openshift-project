@@ -10,6 +10,10 @@
 28/05/2021
 - Add object_dump function
 
+31/05/2021
+- Try to resolve error in generation dc_status output function 
+
+
 # How it works
 
 Template use unique zabbix external script ( python script) with different parameters

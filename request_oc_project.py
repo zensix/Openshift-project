@@ -61,9 +61,15 @@ def dc_status(cfg,selflink):
    Get specifique deployment Config status 
    """
    result=get_data(cfg,selflink)
-   del result['status']['conditions']
-   del result['status']['details']
-   print json.dumps(result['status'],indent=2)
+   out={  "replicas": result['status']['replicas'],   
+      "observedGeneration": result['status']['observedGeneration'],   
+      "updatedReplicas": result['status']['updatedReplicas'],
+      "availableReplicas": result['status']['availableReplicas'],   
+      "latestVersion": result['status']['latestVersion'],   
+      "readyReplicas": result['status']['readyReplicas'],   
+      "unavailableReplicas": result['status']['unavailableReplicas']
+   }
+   print json.dumps(out,indent=2)
 
 def pod_discover(cfg,namespace):
    """
